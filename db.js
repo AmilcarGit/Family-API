@@ -1,14 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, 'database', 'registered_users.json');
+const dbDir = path.join(__dirname, 'database');
+const dbPath = path.join(dbDir, 'registered_users.json');
 
-// Inicializar archivo si no existe
-if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, '[]', 'utf-8');
-}
+if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, '[]', 'utf-8');
 
-// Leer todos los usuarios
 function getAllUsers() {
     try {
         const data = fs.readFileSync(dbPath, 'utf-8');
@@ -18,22 +16,29 @@ function getAllUsers() {
     }
 }
 
-// Guardar todos los usuarios
 function saveUsers(users) {
     fs.writeFileSync(dbPath, JSON.stringify(users, null, 2), 'utf-8');
 }
 
-// Buscar usuario por campo
 function findUser(field, value) {
     const users = getAllUsers();
     return users.find(u => u[field] === value) || null;
 }
 
-// Crear usuario
 function createUser(userData) {
     const users = getAllUsers();
     const newUser = {
         id: Date.now().toString(),
+        role: 'user',
+        plan: 'free',
+        limit: 100,
+        requestToday: 0,
+        totalRequest: 0,
+        lastRequestDate: new Date().toISOString().split('T')[0],
+        profile_img: 'https://i.ibb.co/chJXMd0q/NAGI-REO-RIN-SAE-ISAGI.jpg',
+        createdAt: new Date().toISOString(),
+        vipSince: null,
+        vipExpires: null,
         ...userData
     };
     users.push(newUser);
@@ -41,33 +46,33 @@ function createUser(userData) {
     return newUser;
 }
 
-// Actualizar usuario
-function updateUser(id, newData) {
+// Actualiza un usuario ya sea por id o por otro campo (ej: 'email', 'key')
+function updateUserBy(field, value, newData) {
     const users = getAllUsers();
-    const index = users.findIndex(u => u.id === id);
-    if (index !== -1) {
-        users[index] = { ...users[index], ...newData };
-        saveUsers(users);
-        return users[index];
-    }
-    return null;
+    const index = users.findIndex(u => u[field] === value);
+    if (index === -1) return null;
+    users[index] = { ...users[index], ...newData };
+    saveUsers(users);
+    return users[index];
 }
 
-// Eliminar usuario
-function deleteUser(id) {
+function deleteUserBy(field, value) {
     const users = getAllUsers();
-    const filtered = users.filter(u => u.id !== id);
-    if (filtered.length !== users.length) {
-        saveUsers(filtered);
-        return true;
-    }
-    return false;
+    const filtered = users.filter(u => u[field] !== value);
+    if (filtered.length === users.length) return false;
+    saveUsers(filtered);
+    return true;
+}
+
+function countUsers() {
+    return getAllUsers().length;
 }
 
 module.exports = {
+    getAllUsers,
     findUser,
     createUser,
-    getAllUsers,
-    updateUser,
-    deleteUser
+    updateUserBy,
+    deleteUserBy,
+    countUsers
 };
