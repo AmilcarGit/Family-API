@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+const db = require('../db');
 
 const getTodayDate = () => new Date().toISOString().split('T')[0];
 
 const ADMIN_KEY = process.env.ADMIN_KEY || 'familybot-md';
 
-const authHandler = async (req, res, next) => {
+const authHandler = (req, res, next) => {
     const { apiKey } = req.query;
     const today = getTodayDate();
 
@@ -19,9 +19,8 @@ const authHandler = async (req, res, next) => {
             return next();
         }
 
-        // Buscar en MongoDB
-        const User = mongoose.model('User');
-        let user = await User.findOne({ key: apiKey });
+        // Buscar en el archivo JSON local
+        let user = db.findUser('key', apiKey);
 
         if (!user) {
             return res.status(401).json({ status: false, message: "API Key inválida" });
@@ -29,19 +28,18 @@ const authHandler = async (req, res, next) => {
 
         // Verificar expiración de VIP
         if (user.vipExpires && new Date() > new Date(user.vipExpires)) {
-            user.role = 'user';
-            user.plan = 'free';
-            user.limit = 100;
-            user.vipSince = null;
-            user.vipExpires = null;
-            await user.save();
+            user = db.updateUserBy('id', user.id, {
+                role: 'user',
+                plan: 'free',
+                limit: 100,
+                vipSince: null,
+                vipExpires: null
+            });
         }
 
         // Resetear contador diario si es nuevo día
         if (user.lastRequestDate !== today) {
-            user.requestToday = 0;
-            user.lastRequestDate = today;
-            await user.save();
+            user = db.updateUserBy('id', user.id, { requestToday: 0, lastRequestDate: today });
         }
 
         // Verificar límite diario
@@ -54,9 +52,10 @@ const authHandler = async (req, res, next) => {
         }
 
         // Incrementar contadores
-        user.requestToday += 1;
-        user.totalRequest += 1;
-        await user.save();
+        user = db.updateUserBy('id', user.id, {
+            requestToday: user.requestToday + 1,
+            totalRequest: user.totalRequest + 1
+        });
 
         req.user = user;
         next();
