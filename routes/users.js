@@ -1,37 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { generateKey } = require('../middlewares/auth');
+const db = require('../db');
 
 const SALT_ROUNDS = 10;
-// Un hash de bcrypt siempre empieza con $2a$ / $2b$ / $2y$ — así distinguimos
-// contraseñas ya hasheadas de contraseñas viejas en texto plano (migración).
 const isBcryptHash = (value) => typeof value === 'string' && /^\$2[aby]\$/.test(value);
 
-// ============== MODELO ==============
-const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    key: { type: String, required: true, unique: true },
-    role: { type: String, default: 'user' },
-    plan: { type: String, default: 'free' },
-    limit: { type: Number, default: 100 },
-    requestToday: { type: Number, default: 0 },
-    totalRequest: { type: Number, default: 0 },
-    lastRequestDate: { type: String, default: () => new Date().toISOString().split('T')[0] },
-    profile_img: { type: String, default: 'https://i.ibb.co/chJXMd0q/NAGI-REO-RIN-SAE-ISAGI.jpg' },
-    createdAt: { type: String, default: () => new Date().toISOString() },
-    vipSince: { type: String, default: null },
-    vipExpires: { type: String, default: null }
-});
-
-const User = mongoose.models.User || mongoose.model('User', userSchema);
-
-// ============== ADMIN HARDCODEADO ==============
+// ============== ADMIN (solo por variables de entorno) ==============
 const ADMIN = {
-    username: process.env.ADMIN_USERNAME || 'familybot-md',
+    username: process.env.ADMIN_USERNAME || 'admin',
     email: process.env.ADMIN_EMAIL || 'admin@familybot-md.com',
     password: process.env.ADMIN_PASSWORD || 'familybot-md',
     key: process.env.ADMIN_KEY || 'familybot-md',
@@ -50,12 +28,7 @@ function isAdmin(apiKey) {
 
 function verificarExpiracion(user) {
     if (user.vipExpires && new Date() > new Date(user.vipExpires)) {
-        user.role = 'user';
-        user.plan = 'free';
-        user.limit = 100;
-        user.vipSince = null;
-        user.vipExpires = null;
-        User.findByIdAndUpdate(user._id, { role: 'user', plan: 'free', limit: 100, vipSince: null, vipExpires: null }).exec();
+        db.updateUserBy('id', user.id, { role: 'user', plan: 'free', limit: 100, vipSince: null, vipExpires: null });
         return true;
     }
     return false;
@@ -74,14 +47,13 @@ router.post('/register', async (req, res) => {
     }
 
     try {
-        const exists = await User.findOne({ $or: [{ email }, { username }] });
+        const exists = db.findUser('email', email) || db.findUser('username', username);
         if (exists) {
             return res.status(400).json({ status: false, message: 'El correo o usuario ya existe' });
         }
 
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
-        const newUser = await User.create({
+        const newUser = db.createUser({
             username,
             email,
             password: hashedPassword,
@@ -120,7 +92,7 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        const user = await User.findOne({ email });
+        const user = db.findUser('email', email);
         if (!user) {
             return res.status(401).json({ status: false, message: 'Credenciales incorrectas' });
         }
@@ -129,11 +101,10 @@ router.post('/login', async (req, res) => {
         if (isBcryptHash(user.password)) {
             passwordOk = await bcrypt.compare(password, user.password);
         } else {
-            // Cuenta antigua con contraseña en texto plano: comparamos directo
-            // y, si coincide, la migramos a bcrypt para no volver a guardarla en claro.
+            // Cuenta antigua con contraseña en texto plano: migramos a bcrypt si coincide
             passwordOk = user.password === password;
             if (passwordOk) {
-                user.password = await bcrypt.hash(password, SALT_ROUNDS);
+                db.updateUserBy('id', user.id, { password: await bcrypt.hash(password, SALT_ROUNDS) });
             }
         }
 
@@ -142,7 +113,6 @@ router.post('/login', async (req, res) => {
         }
 
         verificarExpiracion(user);
-        await user.save();
 
         res.json({
             status: true,
@@ -164,7 +134,7 @@ router.post('/login', async (req, res) => {
 });
 
 // ============== MI PERFIL ==============
-router.get('/me', async (req, res) => {
+router.get('/me', (req, res) => {
     const { apiKey } = req.query;
     if (!apiKey) return res.status(400).json({ status: false, message: 'ApiKey requerida' });
 
@@ -180,17 +150,12 @@ router.get('/me', async (req, res) => {
                     role: 'admin',
                     plan: 'ADMIN VIP',
                     profile_img: ADMIN.profile_img,
-                    requests: {
-                        today: 0,
-                        total: 0,
-                        limit: ADMIN.limit,
-                        remaining: ADMIN.limit
-                    }
+                    requests: { today: 0, total: 0, limit: ADMIN.limit, remaining: ADMIN.limit }
                 }
             });
         }
 
-        const user = await User.findOne({ key: apiKey });
+        const user = db.findUser('key', apiKey);
         if (!user) return res.status(404).json({ status: false, message: 'Usuario no encontrado' });
 
         verificarExpiracion(user);
@@ -244,7 +209,7 @@ router.post('/update-profile', async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ key: apiKey });
+        const user = db.findUser('key', apiKey);
         if (!user) return res.status(404).json({ status: false, message: 'Usuario no encontrado' });
 
         const allowedFields = ['username', 'email', 'password', 'profile_img'];
@@ -252,8 +217,8 @@ router.post('/update-profile', async (req, res) => {
             return res.status(400).json({ status: false, message: 'Acción no permitida' });
         }
 
-        user[type] = type === 'password' ? await bcrypt.hash(value, SALT_ROUNDS) : value;
-        await user.save();
+        const newValue = type === 'password' ? await bcrypt.hash(value, SALT_ROUNDS) : value;
+        db.updateUserBy('id', user.id, { [type]: newValue });
 
         res.json({ status: true, message: 'Perfil actualizado', field: type });
     } catch (err) {
@@ -263,36 +228,37 @@ router.post('/update-profile', async (req, res) => {
 });
 
 // ============== ESTADÍSTICAS ==============
-router.get('/stats', async (req, res) => {
+router.get('/stats', (req, res) => {
     try {
-        const totalUsers = await User.countDocuments();
-        res.json({ status: true, users: totalUsers + 1, endpoints: 50 });
+        res.json({ status: true, users: db.countUsers() + 1, endpoints: 50 });
     } catch (err) {
         res.status(500).json({ status: false });
     }
 });
 
 // ============== DASHBOARD GLOBAL ==============
-router.get('/dashboard-global', async (req, res) => {
+router.get('/dashboard-global', (req, res) => {
     try {
-        const totalUsers = await User.countDocuments() + 1;
-        const globalRequests = await User.aggregate([{ $group: { _id: null, total: { $sum: '$totalRequest' } } }]);
+        const users = db.getAllUsers();
+        const totalUsers = users.length + 1;
+        const globalRequests = users.reduce((sum, u) => sum + (u.totalRequest || 0), 0);
 
-        const top5 = await User.find({ totalRequest: { $gt: 0 } })
-            .sort({ totalRequest: -1 })
-            .limit(5)
-            .select('username totalRequest');
+        const top5 = [...users]
+            .filter(u => u.totalRequest > 0)
+            .sort((a, b) => b.totalRequest - a.totalRequest)
+            .slice(0, 5)
+            .map(u => ({
+                username: u.username,
+                total: u.totalRequest,
+                initial: u.username.charAt(0).toUpperCase()
+            }));
 
         res.json({
             status: true,
             totalUsers,
-            globalRequests: globalRequests[0]?.total || 0,
+            globalRequests,
             uptime: global.startTime || Date.now(),
-            top5: top5.map(u => ({
-                username: u.username,
-                total: u.totalRequest,
-                initial: u.username.charAt(0).toUpperCase()
-            }))
+            top5
         });
     } catch (err) {
         console.error(err);
@@ -301,12 +267,12 @@ router.get('/dashboard-global', async (req, res) => {
 });
 
 // ============== ADMIN: VER TODOS ==============
-router.get('/admin/all', async (req, res) => {
+router.get('/admin/all', (req, res) => {
     const { apiKey } = req.query;
     if (!isAdmin(apiKey)) return res.status(403).json({ status: false, message: 'No autorizado' });
 
     try {
-        const users = await User.find().select('-password');
+        const users = db.getAllUsers().map(({ password, ...safe }) => safe);
         const { password, ...adminSafe } = ADMIN;
         res.json({ status: true, users: [adminSafe, ...users] });
     } catch (err) {
@@ -315,12 +281,12 @@ router.get('/admin/all', async (req, res) => {
 });
 
 // ============== ADMIN: ACTUALIZAR ==============
-router.post('/admin/update', async (req, res) => {
+router.post('/admin/update', (req, res) => {
     const { adminKey, targetEmail, newData } = req.body;
     if (!isAdmin(adminKey)) return res.status(403).json({ status: false });
 
     try {
-        const user = await User.findOneAndUpdate({ email: targetEmail }, newData, { new: true });
+        const user = db.updateUserBy('email', targetEmail, newData);
         if (!user) return res.status(404).json({ status: false });
         res.json({ status: true });
     } catch (err) {
@@ -329,14 +295,14 @@ router.post('/admin/update', async (req, res) => {
 });
 
 // ============== ADMIN: ELIMINAR ==============
-router.post('/admin/delete', async (req, res) => {
+router.post('/admin/delete', (req, res) => {
     const { adminKey, targetEmail } = req.body;
     if (!isAdmin(adminKey)) return res.status(403).json({ status: false });
     if (targetEmail === ADMIN.email) return res.status(403).json({ status: false, message: 'No se puede eliminar el admin' });
 
     try {
-        const user = await User.findOneAndDelete({ email: targetEmail });
-        if (!user) return res.status(404).json({ status: false });
+        const ok = db.deleteUserBy('email', targetEmail);
+        if (!ok) return res.status(404).json({ status: false });
         res.json({ status: true });
     } catch (err) {
         res.status(500).json({ status: false });
