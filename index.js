@@ -6,26 +6,16 @@ const morgan = require('morgan');
 const { authHandler } = require('./middlewares/auth');
 const { apiNotFound, errorHandler } = require('./middlewares/errorHandler');
 const { globalLimiter, authLimiter } = require('./middlewares/rateLimiter');
-const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 24680;
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DB = process.env.MONGODB_DB || 'familybotmd_api';
-
-if (!MONGODB_URI) {
-    console.error('❌ Falta MONGODB_URI en tu archivo .env (o en las variables de entorno de Render). Copia .env.example a .env y complétalo con tu propia cadena de conexión de MongoDB Atlas.');
-    process.exit(1);
-}
-
-mongoose.connect(`${MONGODB_URI}/${MONGODB_DB}`, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => {
-    console.log('✅ Conectado a MongoDB Atlas');
-    global.startTime = Date.now();
-}).catch(err => console.error('❌ Error MongoDB:', err));
+// Almacenamiento: archivo JSON local (database/registered_users.json), sin base externa.
+// ⚠️ En Render (plan Free) el disco es efímero: los datos se pierden en cada
+// redeploy o si la instancia se recrea. Para persistencia real, usa un Disk
+// pago de Render o cambia a una base de datos gestionada más adelante.
+global.startTime = Date.now();
+console.log('✅ Almacenamiento local (JSON) listo');
 
 app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -137,7 +127,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-    console.log(`🚀 AmilcarGit API escuchando en el puerto ${PORT}`);
+    console.log(`🚀 FamilyBot-MD API escuchando en el puerto ${PORT}`);
     if (!process.env.ADMIN_PASSWORD || !process.env.ADMIN_KEY) {
         console.warn('⚠️  ADMIN_PASSWORD / ADMIN_KEY no están definidos en .env — se están usando valores por defecto inseguros. Configúralos antes de exponer la API en producción.');
     }
