@@ -1,30 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-
-// ============== MODELO ==============
-const codeSchema = new mongoose.Schema({
-    code: { type: String, required: true, unique: true },
-    requests: { type: Number, required: true }, // solicitudes que da
-    maxUses: { type: Number, required: true },   // máximo de personas que lo pueden canjear
-    uses: { type: Number, default: 0 },          // cuántas veces se ha canjeado
-    usedBy: [{ type: String }],                  // emails que lo canjearon
-    createdBy: { type: String, default: 'admin' },
-    createdAt: { type: String, default: () => new Date().toISOString() },
-    active: { type: Boolean, default: true }
-});
-
-const Code = mongoose.models.RedeemCode || mongoose.model('RedeemCode', codeSchema);
-
-// Modelo de usuario (reutilizamos)
-const userSchema = new mongoose.Schema({}, { strict: false });
-const User = mongoose.models.User || mongoose.model('User', userSchema);
+const fs = require('fs');
+const path = require('path');
+const db = require('../db');
 
 const ADMIN_KEY = process.env.ADMIN_KEY || 'familybot-md';
 
+// ============== "BASE DE DATOS" DE CÓDIGOS (JSON local) ==============
+const codesPath = path.join(__dirname, '..', 'database', 'codes.json');
+if (!fs.existsSync(path.dirname(codesPath))) fs.mkdirSync(path.dirname(codesPath), { recursive: true });
+if (!fs.existsSync(codesPath)) fs.writeFileSync(codesPath, '[]', 'utf-8');
+
+function getCodes() {
+    try {
+        return JSON.parse(fs.readFileSync(codesPath, 'utf-8'));
+    } catch {
+        return [];
+    }
+}
+function saveCodes(codes) {
+    fs.writeFileSync(codesPath, JSON.stringify(codes, null, 2), 'utf-8');
+}
+
 // ============== CANJEAR CÓDIGO (usuario) ==============
 // POST /api/auth/redeem
-router.post('/redeem', async (req, res) => {
+router.post('/redeem', (req, res) => {
     const { apiKey, code } = req.body;
 
     if (!apiKey || !code) {
@@ -32,10 +32,12 @@ router.post('/redeem', async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ key: apiKey });
+        const user = db.findUser('key', apiKey);
         if (!user) return res.status(404).json({ status: false, error: 'Usuario no encontrado' });
 
-        const redeemCode = await Code.findOne({ code: code.trim().toUpperCase() });
+        const normalizedCode = code.trim().toUpperCase();
+        const codes = getCodes();
+        const redeemCode = codes.find(c => c.code === normalizedCode);
 
         if (!redeemCode) return res.status(404).json({ status: false, error: 'Código no válido' });
         if (!redeemCode.active) return res.status(400).json({ status: false, error: 'Este código ya no está activo' });
@@ -43,21 +45,21 @@ router.post('/redeem', async (req, res) => {
         if (redeemCode.usedBy.includes(user.email)) return res.status(400).json({ status: false, error: 'Ya canjeaste este código anteriormente' });
 
         // Sumar solicitudes al usuario
-        user.limit = (user.limit || 100) + redeemCode.requests;
-        await user.save();
+        const newLimit = (user.limit || 100) + redeemCode.requests;
+        db.updateUserBy('id', user.id, { limit: newLimit });
 
         // Registrar el canje
         redeemCode.uses += 1;
         redeemCode.usedBy.push(user.email);
         if (redeemCode.uses >= redeemCode.maxUses) redeemCode.active = false;
-        await redeemCode.save();
+        saveCodes(codes);
 
         return res.json({
             status: true,
             creator: 'familybot-md',
             message: `¡Código canjeado! +${redeemCode.requests} solicitudes agregadas`,
             requests_added: redeemCode.requests,
-            new_limit: user.limit
+            new_limit: newLimit
         });
 
     } catch (err) {
@@ -68,31 +70,37 @@ router.post('/redeem', async (req, res) => {
 
 // ============== CREAR CÓDIGO (admin) ==============
 // POST /api/auth/admin/create-code
-router.post('/admin/create-code', async (req, res) => {
+router.post('/admin/create-code', (req, res) => {
     const { adminKey, code, requests, maxUses } = req.body;
 
     if (adminKey !== ADMIN_KEY) return res.status(403).json({ status: false, error: 'No autorizado' });
     if (!code || !requests || !maxUses) return res.status(400).json({ status: false, error: 'Faltan parámetros' });
 
     try {
-        const exists = await Code.findOne({ code: code.trim().toUpperCase() });
-        if (exists) return res.status(400).json({ status: false, error: 'Este código ya existe' });
+        const normalizedCode = code.trim().toUpperCase();
+        const codes = getCodes();
+        if (codes.find(c => c.code === normalizedCode)) {
+            return res.status(400).json({ status: false, error: 'Este código ya existe' });
+        }
 
-        const newCode = await Code.create({
-            code: code.trim().toUpperCase(),
+        const newCode = {
+            code: normalizedCode,
             requests: parseInt(requests),
-            maxUses: parseInt(maxUses)
-        });
+            maxUses: parseInt(maxUses),
+            uses: 0,
+            usedBy: [],
+            createdBy: 'admin',
+            createdAt: new Date().toISOString(),
+            active: true
+        };
+        codes.push(newCode);
+        saveCodes(codes);
 
         res.json({
             status: true,
             creator: 'familybot-md',
             message: 'Código creado exitosamente',
-            data: {
-                code: newCode.code,
-                requests: newCode.requests,
-                maxUses: newCode.maxUses
-            }
+            data: { code: newCode.code, requests: newCode.requests, maxUses: newCode.maxUses }
         });
     } catch (err) {
         console.error(err);
@@ -102,12 +110,12 @@ router.post('/admin/create-code', async (req, res) => {
 
 // ============== VER CÓDIGOS (admin) ==============
 // GET /api/auth/admin/codes
-router.get('/admin/codes', async (req, res) => {
+router.get('/admin/codes', (req, res) => {
     const { apiKey } = req.query;
     if (apiKey !== ADMIN_KEY) return res.status(403).json({ status: false, error: 'No autorizado' });
 
     try {
-        const codes = await Code.find().sort({ createdAt: -1 });
+        const codes = getCodes().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         res.json({ status: true, total: codes.length, data: codes });
     } catch (err) {
         res.status(500).json({ status: false, error: 'Error interno' });
@@ -116,12 +124,14 @@ router.get('/admin/codes', async (req, res) => {
 
 // ============== ELIMINAR CÓDIGO (admin) ==============
 // POST /api/auth/admin/delete-code
-router.post('/admin/delete-code', async (req, res) => {
+router.post('/admin/delete-code', (req, res) => {
     const { adminKey, code } = req.body;
     if (adminKey !== ADMIN_KEY) return res.status(403).json({ status: false, error: 'No autorizado' });
 
     try {
-        await Code.findOneAndDelete({ code: code.trim().toUpperCase() });
+        const normalizedCode = (code || '').trim().toUpperCase();
+        const codes = getCodes().filter(c => c.code !== normalizedCode);
+        saveCodes(codes);
         res.json({ status: true, message: 'Código eliminado' });
     } catch (err) {
         res.status(500).json({ status: false, error: 'Error interno' });
