@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FamilyBot-MD · Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-primary: #0a0b0e;
+            --bg-card: #14161c;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --accent: #ec4899;
+            --accent-gradient: linear-gradient(135deg, #ec4899, #a855f7);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 24px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.light-mode {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #preloader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        #preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(59, 130, 246, 0.1);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text {
+            margin-top: 16px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        header {
+            background: var(--bg-card);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), box-shadow var(--transition);
+        }
+
+        body.light-mode header {
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            transform: rotate(20deg);
+        }
+
+        .menu-toggle {
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        .menu-toggle:hover { color: var(--accent); }
+
+        .container {
+            flex: 1;
+            padding: 20px 20px 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            transition: all var(--transition);
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        body.light-mode .card {
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        body.light-mode .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .card-header i {
+            color: var(--accent);
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 10px 0 16px;
+        }
+
+        .avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--bg-card);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+            margin-bottom: 16px;
+        }
+
+        .greeting {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .greeting span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            color: white;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-gold {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .badge-free {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+        }
+
+        .days-left {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .key-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-primary);
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .key-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .key-actions button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            padding: 4px;
+        }
+
+        .key-actions button:hover { color: var(--accent); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .stat-item {
+            background: var(--bg-primary);
+            border-radius: 18px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .stat-value.accent { color: var(--accent); }
+
+        .stat-icon {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            font-size: 1.8rem;
+            color: var(--accent);
+            opacity: 0.08;
+        }
+
+        .upgrade-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+        }
+
+        .upgrade-note {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .top-user {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: var(--bg-primary);
+            margin-bottom: 8px;
+            transition: var(--transition);
+        }
+
+        .top-user:hover {
+            transform: translateX(4px);
+        }
+
+        .top-user-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rank-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.7rem;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        .rank-1 { background: #f59e0b; color: white; }
+        .rank-2 { background: #94a3b8; color: white; }
+        .rank-3 { background: #d97706; color: white; }
+
+        .top-username {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .top-count {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+
+        /* REDEEM CODE */
+        .redeem-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .redeem-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1.5px solid transparent;
+            padding: 12px 16px;
+            border-radius: 14px;
+            color: var(--text-primary);
+            outline: none;
+            font-size: 0.85rem;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: var(--transition);
+        }
+
+        .redeem-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+        }
+
+        .redeem-input::placeholder {
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .redeem-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: var(--transition);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+        }
+
+        .redeem-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 85%;
+            max-width: 300px;
+            height: 100%;
+            background: var(--bg-card);
+            box-shadow: -5px 0 30px rgba(0,0,0,0.05);
+            transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            padding: 30px 20px;
+            border-left: 1px solid rgba(0,0,0,0.04);
+            overflow-y: auto;
+        }
+
+        body.light-mode .sidebar {
+            border-left: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .sidebar.active { right: 0; }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        body.light-mode .sidebar-header {
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .sidebar-title {
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .sidebar-close {
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        .sidebar-close:hover { color: var(--accent); }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            margin-bottom: 2px;
+            background: transparent;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .sidebar-link:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .sidebar-link:hover i { color: var(--accent); }
+
+        .sidebar-link.active {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .sidebar-link.active i { color: white; }
+
+        .logout-link {
+            margin-top: 20px;
+            border-top: 1px solid rgba(0,0,0,0.04);
+            padding-top: 20px;
+            color: #ef4444;
+        }
+
+        body.light-mode .logout-link {
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .logout-link i { color: #ef4444; }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            z-index: 1500;
+        }
+
+        .overlay.active { display: block; }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(0,0,0,0.04);
+            margin-top: auto;
+        }
+
+        body.light-mode .footer {
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-item { padding: 14px; }
+            .stat-value { font-size: 1.1rem; }
+            .container { padding: 14px; }
+            .card { padding: 18px; }
+            .greeting { font-size: 1.2rem; }
+            .avatar { width: 72px; height: 72px; }
+            .redeem-input-group { flex-direction: column; }
+            .redeem-btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div id="preloader">
+        <div class="spinner"></div>
+        <div class="loading-text">Cargando experiencia</div>
+    </div>
+
+    <header>
+        <div class="brand">
+            <i class="fas fa-crown"></i>
+            <span>FamilyBot-MD</span>
+        </div>
+        <div class="header-controls">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">Menú</span>
+            <button class="sidebar-close" onclick="toggleMenu()" aria-label="Close menu">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+        <div id="admin-nav" style="display:none;" class="nav-section">
+            <div class="nav-label">Staff</div>
+            <a href="/admin" class="sidebar-link">
+                <i class="fas fa-user-shield"></i> Panel Admin
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Navegación</div>
+            <a href="#" class="sidebar-link active" onclick="toggleMenu()">
+                <i class="fas fa-chart-simple"></i> Dashboard
+            </a>
+            <a href="/profile" class="sidebar-link">
+                <i class="fas fa-user"></i> Mi Perfil
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Servicios</div>
+            <a href="/endpoints/search" class="sidebar-link"><i class="fas fa-search"></i> Search</a>
+            <a href="/endpoints/tools" class="sidebar-link"><i class="fas fa-wrench"></i> Tools</a>
+            <a href="/endpoints/download" class="sidebar-link"><i class="fas fa-download"></i> Downloads</a>
+            <a href="/endpoints/ai" class="sidebar-link"><i class="fas fa-brain"></i> AI Gemini</a>
+            <a href="/endpoints/anime" class="sidebar-link"><i class="fas fa-torii-gate"></i> Anime</a>
+        </div>
+
+        <button class="sidebar-link logout-link" onclick="logout()">
+            <i class="fas fa-arrow-right-from-bracket"></i> Cerrar Sesión
+        </button>
+    </nav>
+
+    <main class="container" id="content-area"></main>
+
+    <footer class="footer">
+        <p>© 2026 FamilyBot-MD · Desarrollado por AmilcarGit</p>
+    </footer>
+
+    <script>
+        const userData = JSON.parse(localStorage.getItem('kazuma_user'));
+        if (!userData) window.location.href = '/login';
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            const icon = btn.querySelector('i');
+
+            body.classList.toggle('light-mode');
+
+            if (body.classList.contains('light-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('kazuma-theme', 'light');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('kazuma-theme', 'dark');
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+
+        function copyKey() {
+            navigator.clipboard.writeText(userData.key);
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Copiado al portapapeles',
+                showConfirmButton: false,
+                timer: 1500,
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            });
+        }
+
+        function toggleKeyVisibility() {
+            const el = document.getElementById('key-display');
+            if (el.innerText.includes('••••')) {
+                el.innerText = userData.key;
+            } else {
+                el.innerText = '••••••••••••••••';
+            }
+        }
+
+        function updateUptime(startTime) {
+            setInterval(() => {
+                const now = Date.now();
+                const diff = Math.floor((now - startTime) / 1000);
+                const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+                const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                const el = document.getElementById('uptime-val');
+                if (el) el.innerText = `${h}:${m}:${s}`;
+            }, 1000);
+        }
+
+        // ============ CANJE DE CÓDIGOS ============
+        async function canjearCodigo() {
+            const input = document.getElementById('redeem-input');
+            const code = input.value.trim();
+
+            if (!code) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Código vacío',
+                    text: 'Ingresa un código de recompensa',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    confirmButtonColor: '#ec4899'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Canjeando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            });
+
+            try {
+                const res = await fetch('/api/auth/redeem', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        apiKey: userData.key,
+                        code: code
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.status) {
+                    input.value = '';
+
+                    // Actualizar datos del usuario
+                    if (data.updatedUser) {
+                        const updatedUser = { ...userData, ...data.updatedUser };
+                        localStorage.setItem('kazuma_user', JSON.stringify(updatedUser));
+                        Object.assign(userData, updatedUser);
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Código Canjeado!',
+                        html: `
+                            <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:8px;">${data.message}</p>
+                            <p style="color: #22c55e; font-weight:900; font-size:1.4rem;">+${data.requests_added} solicitudes</p>
+                        `,
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                        confirmButtonColor: '#ec4899'
+                    });
+
+                    // Recargar dashboard
+                    loadDash();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error || 'Código inválido o ya usado',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                        confirmButtonColor: '#ec4899'
+                    });
+                }
+            } catch (e) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo conectar con el servidor',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    confirmButtonColor: '#ec4899'
+                });
+            }
+        }
+
+        async function loadDash() {
+            const savedTheme = localStorage.getItem('kazuma-theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-btn').querySelector('i').classList.replace('fa-moon', 'fa-sun');
+            }
+
+            const area = document.getElementById('content-area');
+            const preloader = document.getElementById('preloader');
+
+            if (userData.role === 'admin') {
+                document.getElementById('admin-nav').style.display = 'block';
+            }
+
+            try {
+                const [resGlobal, resMe] = await Promise.all([
+                    fetch('/api/auth/dashboard-global'),
+                    fetch(`/api/auth/me?apiKey=${userData.key}`)
+                ]);
+
+                const data = await resGlobal.json();
+                const me = await resMe.json();
+
+                if (me.status) {
+                    const updatedUser = { ...userData, ...me.data };
+                    localStorage.setItem('kazuma_user', JSON.stringify(updatedUser));
+                    Object.assign(userData, me.data);
+                }
+
+                const avatar = me.data?.profile_img || 'https://i.ibb.co/jPzxnp6x/NAGI-REO-RIN-SAE-ISAGI.jpg';
+                const username = userData.username || 'Usuario';
+                const plan = userData.plan || 'FREE';
+                const daysLeft = userData.daysLeft || 0;
+                const isAdmin = userData.role === 'admin';
+
+                const daysLeftHtml = daysLeft > 0
+                    ? `<span class="days-left"><i class="far fa-clock"></i> ${daysLeft} días</span>`
+                    : '';
+
+                const planBadge = plan === 'VIP' || plan === 'PREMIUM' || plan === 'ADMIN VIP'
+                    ? `<span class="badge badge-gold">${plan}</span>`
+                    : `<span class="badge badge-free">${plan}</span>`;
+
+                const todayRequests = me.data?.requests?.today || 0;
+                const limitRequests = me.data?.requests?.limit || 0;
+
+                area.innerHTML = `
+                    <section class="hero-section">
+                        <img src="${avatar}" alt="Avatar" class="avatar">
+                        <h1 class="greeting">Bienvenido, <span>${username}</span></h1>
+                        <div class="user-meta">
+                            ${planBadge}
+                            ${daysLeftHtml}
+                        </div>
+                    </section>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-key"></i>
+                            <span class="card-title">API Key</span>
+                        </div>
+                        <div class="key-display">
+                            <span id="key-display">••••••••••••••••</span>
+                            <div class="key-actions">
+                                <button onclick="toggleKeyVisibility()" aria-label="Toggle visibility">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="copyKey()" aria-label="Copy key">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-microchip"></i>
+                            <span class="card-title">Estado del Sistema</span>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-item" style="grid-column: span 2;">
+                                <span class="stat-label"><i class="fas fa-users"></i> Usuarios activos</span>
+                                <div class="stat-value">${data.totalUsers || 0}</div>
+                                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label"><i class="fas fa-clock"></i> Uptime</span>
+                                <div class="stat-value accent" id="uptime-val">00:00:00</div>
+                                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label"><i class="fas fa-chart-line"></i> Solicitudes hoy</span>
+                                <div class="stat-value">${todayRequests} <span style="font-size:0.7rem; font-weight:400; color:var(--text-muted);">/ ${limitRequests}</span></div>
+                                <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REDEEM CODE CARD -->
+                    <div class="card" style="background: linear-gradient(135deg, rgba(59,130,246,0.03), rgba(139,92,246,0.03)); border: 1px solid rgba(59,130,246,0.08);">
+                        <div class="card-header">
+                            <i class="fas fa-gift" style="color: #f59e0b;"></i>
+                            <span class="card-title">Canjear Código</span>
+                        </div>
+                        <p style="font-size:0.78rem; color: var(--text-muted); margin-bottom:14px;">
+                            ¿Tienes un código de recompensa? Canjéalo y obtén solicitudes extra.
+                        </p>
+                        <div class="redeem-input-group">
+                            <input 
+                                id="redeem-input" 
+                                type="text" 
+                                placeholder="Ej: NINGUNO" 
+                                class="redeem-input"
+                                oninput="this.value = this.value.toUpperCase()"
+                            >
+                            <button onclick="canjearCodigo()" class="redeem-btn">
+                                <i class="fas fa-check"></i> Canjear
+                            </button>
+                        </div>
+                    </div>
+
+                    ${!isAdmin ? `
+                        <div class="card" style="background: linear-gradient(135deg, rgba(59,130,246,0.03), rgba(139,92,246,0.03));">
+                            <div class="card-header">
+                                <i class="fas fa-crown"></i>
+                                <span class="card-title">Mejora tu plan</span>
+                            </div>
+                            <button class="upgrade-btn" onclick="window.location.href='/profile'">
+                                <i class="fab fa-paypal"></i> Ver planes disponibles
+                            </button>
+                            <div class="upgrade-note">🌟 Desde $1 USD · más solicitudes y beneficios exclusivos</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-trophy"></i>
+                            <span class="card-title">Top 5 Usuarios</span>
+                        </div>
+                        ${data.top5 && data.top5.length ? data.top5.map((u, i) => {
+                            const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+                            return `
+                                <div class="top-user">
+                                    <div class="top-user-left">
+                                        <div class="rank-badge ${rankClass}">${i + 1}</div>
+                                        <span class="top-username">${u.username}</span>
+                                    </div>
+                                    <span class="top-count">${u.total} reqs</span>
+                                </div>
+                            `;
+                        }).join('') : '<p style="color:var(--text-muted); font-size:0.85rem;">No hay datos aún</p>'}
+                    </div>
+                `;
+
+                updateUptime(data.uptime || Date.now());
+
+            } catch (e) {
+                console.error('Error al cargar dashboard:', e);
+                area.innerHTML = `
+                    <div class="card" style="text-align:center; padding:40px;">
+                        <i class="fas fa-triangle-exclamation" style="font-size:2rem; color:#ef4444; margin-bottom:12px;"></i>
+                        <p style="font-weight:500; color:var(--text-secondary);">No se pudo conectar con el servidor</p>
+                        <button onclick="loadDash()" style="margin-top:16px; padding:8px 20px; border-radius:50px; border:none; background:var(--accent); color:white; font-weight:600; cursor:pointer;">Reintentar</button>
+                    </div>
+                `;
+            }
+
+            setTimeout(() => {
+                preloader.classList.add('hidden');
+            }, 600);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDash);
+    </script>
+</body>
+</html>

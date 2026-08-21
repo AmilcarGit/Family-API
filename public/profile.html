@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FamilyBot-MD · Perfil</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent: #ec4899;
+            --accent-gradient: linear-gradient(135deg, #ec4899, #a855f7);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --radius: 24px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.dark-mode {
+            --bg-primary: #0a0b0e;
+            --bg-card: #14161c;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        #safety-block {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+
+        #safety-block.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid rgba(0,0,0,0.02);
+            box-shadow: var(--shadow);
+            transition: all var(--transition);
+        }
+
+        body.dark-mode .card {
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        body.dark-mode .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .input-field {
+            background: var(--bg-primary);
+            border: 1.5px solid transparent;
+            border-radius: 14px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+            outline: none;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-whatsapp:hover {
+            background: #128C7E;
+            transform: scale(1.03);
+        }
+
+        .plan-card {
+            background: var(--bg-primary);
+            border-radius: 20px;
+            padding: 28px 28px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        body.dark-mode .plan-card {
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .plan-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        body.dark-mode .plan-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .plan-card .plan-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border: 2px solid rgba(0,0,0,0.04);
+            margin-bottom: 16px;
+        }
+
+        body.dark-mode .plan-card .plan-icon {
+            border: 2px solid rgba(255,255,255,0.04);
+        }
+
+        .plan-card .plan-info {
+            width: 100%;
+        }
+
+        .plan-card .plan-info h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.3px;
+        }
+
+        .plan-card .plan-info .plan-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0 0 12px 0;
+            line-height: 1.6;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .plan-card .plan-info .plan-features {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .plan-card .plan-info .plan-features span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .plan-card .plan-info .plan-features i {
+            color: var(--accent);
+            font-size: 0.75rem;
+        }
+
+        .plan-card .plan-price {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plan-card .plan-price .price {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #22c55e;
+            letter-spacing: -0.5px;
+        }
+
+        .plan-card .plan-price .price-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .plan-card .plan-price .btn-whatsapp {
+            margin-top: 4px;
+        }
+
+        header {
+            background: var(--bg-card);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), box-shadow var(--transition);
+        }
+
+        body.dark-mode header {
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand i {
+            color: var(--accent);
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            transform: rotate(20deg);
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--bg-card);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
+        }
+
+        .badge-plan {
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            background: var(--accent-gradient);
+            color: white;
+        }
+
+        .badge-vip { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .badge-pro { background: linear-gradient(135deg, #ec4899, #6366f1); }
+        .badge-premium { background: linear-gradient(135deg, #a855f7, #ec4899); }
+        .badge-admin { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .badge-free { background: var(--bg-primary); color: var(--text-secondary); }
+        .badge-lite { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .badge-plus { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+        .stat-box {
+            background: var(--bg-primary);
+            border-radius: 18px;
+            padding: 16px 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-box:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-top: 2px;
+        }
+
+        .stat-value.accent { color: var(--accent); }
+        .stat-value.gold { color: #f59e0b; }
+
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-flex {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-flex .input-field {
+            flex: 1;
+        }
+
+        .input-flex .btn-primary {
+            flex-shrink: 0;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 14px;
+            background: rgba(239, 68, 68, 0.08);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section-title i {
+            color: var(--accent);
+        }
+
+        @media (max-width: 480px) {
+            .input-flex {
+                flex-direction: column;
+            }
+            .input-flex .btn-primary {
+                width: 100%;
+            }
+            .plan-card {
+                padding: 20px 16px;
+            }
+            .plan-card .plan-icon {
+                width: 80px;
+                height: 80px;
+            }
+            .plan-card .plan-info .plan-features {
+                gap: 10px;
+                font-size: 0.7rem;
+            }
+            .plan-card .plan-info h3 {
+                font-size: 1.1rem;
+            }
+            .plan-card .plan-info .plan-desc {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="safety-block"></div>
+
+    <header>
+        <div class="brand" onclick="location.href='/dash'">
+            <i class="fas fa-crown"></i>
+            <span>FamilyBot-MD</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button onclick="location.href='/dash'" class="text-xs font-bold bg-[var(--bg-primary)] px-4 py-2 rounded-xl border border-[var(--text-muted)]/10 transition hover:border-[var(--accent)]" style="color: var(--text-secondary);">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 max-w-2xl pb-12">
+
+        <div class="card p-8 mt-6 text-center">
+            <img id="view-img" src="https://i.ibb.co/jPzxnp6x/NAGI-REO-RIN-SAE-ISAGI.jpg" class="avatar mx-auto" alt="Avatar">
+            <h2 id="view-username" class="text-2xl font-black mt-4">---</h2>
+            <p id="view-id" class="text-sm font-medium text-[var(--text-muted)] mt-1">---</p>
+            <div class="mt-3">
+                <span id="view-plan-badge" class="badge-plan">---</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mt-6">
+            <div class="stat-box">
+                <div class="stat-label"><i class="fas fa-crown" style="margin-right:4px;"></i> Plan</div>
+                <div id="view-plan" class="stat-value gold">---</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label"><i class="fas fa-chart-line" style="margin-right:4px;"></i> Límite diario</div>
+                <div id="view-requests" class="stat-value accent">0</div>
+            </div>
+        </div>
+
+        <div class="card p-8 mt-8">
+            <div class="section-title">
+                <i class="fas fa-crown"></i> Planes Disponibles
+            </div>
+
+            <!-- Plan Lite -->
+            <div class="plan-card">
+                <img src="https://i.ibb.co/CKXMVLSP/file-000000009b2871f78948a30357c6274b.png" class="plan-icon" alt="Plan Lite">
+                <div class="plan-info">
+                    <h3>Lite</h3>
+                    <p class="plan-desc">Plan básico ideal para desarrolladores que están comenzando y necesitan un límite diario moderado para pruebas y proyectos personales.</p>
+                    <div class="plan-features">
+                        <span><i class="fas fa-check-circle"></i> 500 solicitudes diarias</span>
+                        <span><i class="fas fa-clock"></i> 33 días de duración</span>
+                        <span><i class="fas fa-rocket"></i> Ideal para iniciar</span>
+                    </div>
+                </div>
+                <div class="plan-price">
+                    <div class="price">$0.50</div>
+                    <div class="price-label">USD</div>
+                    <button onclick="comprarWhatsApp('Lite', 0.50, '500 solicitudes por 33 días')" class="btn-whatsapp">
+                        <i class="fab fa-whatsapp"></i> Comprar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Plan Plus -->
+            <div class="plan-card">
+                <img src="https://i.ibb.co/WTzWThP/Plan-Plus.png" class="plan-icon" alt="Plan Plus">
+                <div class="plan-info">
+                    <h3>Plus</h3>
+                    <p class="plan-desc">Plan intermedio para proyectos en crecimiento que requieren un mayor volumen de solicitudes diarias con un excelente costo-beneficio.</p>
+                    <div class="plan-features">
+                        <span><i class="fas fa-check-circle"></i> 1,000 solicitudes diarias</span>
+                        <span><i class="fas fa-clock"></i> 33 días de duración</span>
+                        <span><i class="fas fa-chart-line"></i> Uso frecuente</span>
+                    </div>
+                </div>
+                <div class="plan-price">
+                    <div class="price">$1.00</div>
+                    <div class="price-label">USD</div>
+                    <button onclick="comprarWhatsApp('Plus', 1, '1,000 solicitudes por 33 días')" class="btn-whatsapp">
+                        <i class="fab fa-whatsapp"></i> Comprar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Plan Pro -->
+            <div class="plan-card">
+                <img src="https://i.ibb.co/BXNvcG5/Plan-Pro.png" class="plan-icon" alt="Plan Pro">
+                <div class="plan-info">
+                    <h3>Pro</h3>
+                    <p class="plan-desc">Plan avanzado para proyectos exigentes que necesitan un alto volumen de solicitudes diarias con el mejor rendimiento y estabilidad.</p>
+                    <div class="plan-features">
+                        <span><i class="fas fa-check-circle"></i> 2,000 solicitudes diarias</span>
+                        <span><i class="fas fa-clock"></i> 33 días de duración</span>
+                        <span><i class="fas fa-bolt"></i> Alto rendimiento</span>
+                    </div>
+                </div>
+                <div class="plan-price">
+                    <div class="price">$2.00</div>
+                    <div class="price-label">USD</div>
+                    <button onclick="comprarWhatsApp('Pro', 2, '2,000 solicitudes por 33 días')" class="btn-whatsapp">
+                        <i class="fab fa-whatsapp"></i> Comprar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card p-8 mt-8">
+            <div class="section-title">
+                <i class="fas fa-pen"></i> Editar Datos
+            </div>
+
+            <div class="input-group">
+                <label><i class="fas fa-key" style="margin-right:6px; color:var(--text-muted);"></i> Mi API Key</label>
+                <div class="input-flex">
+                    <input type="text" id="view-apikey" class="input-field font-mono text-xs" readonly>
+                    <button onclick="copyKey()" class="btn-primary" style="padding: 12px 16px;">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label><i class="fas fa-image" style="margin-right:6px; color:var(--text-muted);"></i> Avatar (URL)</label>
+                <div class="input-flex">
+                    <input type="text" id="new-img" class="input-field" placeholder="https://ejemplo.com/avatar.jpg">
+                    <button onclick="updateData('profile_img')" class="btn-primary">Actualizar</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label><i class="fas fa-user" style="margin-right:6px; color:var(--text-muted);"></i> Usuario</label>
+                <div class="input-flex">
+                    <input type="text" id="new-username" class="input-field" placeholder="Nuevo usuario">
+                    <button onclick="updateData('username')" class="btn-primary">Actualizar</button>
+                </div>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 0;">
+                <label><i class="fas fa-lock" style="margin-right:6px; color:var(--text-muted);"></i> Contraseña</label>
+                <div class="input-flex">
+                    <input type="password" id="new-pass" class="input-field" placeholder="••••••••">
+                    <button onclick="updateData('password')" class="btn-primary">Actualizar</button>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-[var(--text-muted)]/10">
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-arrow-right-from-bracket"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const userData = JSON.parse(localStorage.getItem('kazuma_user'));
+        if (!userData) window.location.href = '/login';
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            const icon = btn.querySelector('i');
+
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('kazuma-theme', 'dark');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('kazuma-theme', 'light');
+            }
+        }
+
+        async function loadProfile() {
+            const savedTheme = localStorage.getItem('kazuma-theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-btn').querySelector('i').classList.replace('fa-moon', 'fa-sun');
+            }
+
+            try {
+                const res = await fetch(`/api/auth/me?apiKey=${userData.key}`);
+                const result = await res.json();
+
+                if (result.status) {
+                    const u = result.data;
+
+                    document.getElementById('view-username').innerText = u.username || '---';
+                    document.getElementById('view-id').innerText = u.email || '---';
+                    document.getElementById('view-apikey').value = u.key || '---';
+                    document.getElementById('view-requests').innerText = u.requests?.limit || 0;
+                    document.getElementById('view-plan').innerText = u.plan?.toUpperCase() || 'FREE';
+
+                    if (u.profile_img) {
+                        document.getElementById('view-img').src = u.profile_img;
+                    }
+
+                    const badge = document.getElementById('view-plan-badge');
+                    const plan = u.plan?.toUpperCase() || 'FREE';
+                    badge.innerText = plan;
+
+                    badge.className = 'badge-plan';
+                    if (plan === 'VIP' || plan === 'PREMIUM') badge.classList.add('badge-premium');
+                    else if (plan === 'PRO') badge.classList.add('badge-pro');
+                    else if (plan === 'PLUS') badge.classList.add('badge-plus');
+                    else if (plan === 'LITE') badge.classList.add('badge-lite');
+                    else if (plan === 'ADMIN' || plan === 'ADMIN VIP') badge.classList.add('badge-admin');
+                    else badge.classList.add('badge-free');
+
+                    const updatedUser = { ...userData, ...u };
+                    localStorage.setItem('kazuma_user', JSON.stringify(updatedUser));
+                    Object.assign(userData, updatedUser);
+                }
+            } catch (e) {
+                console.error('Error al cargar perfil:', e);
+            }
+
+            document.getElementById('safety-block').classList.add('hidden');
+        }
+
+        async function updateData(type) {
+            const inputMap = {
+                'username': 'new-username',
+                'password': 'new-pass',
+                'profile_img': 'new-img'
+            };
+
+            const input = document.getElementById(inputMap[type]);
+            const val = input.value.trim();
+
+            if (!val) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'El campo no puede estar vacío',
+                    icon: 'error',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    confirmButtonColor: '#ec4899'
+                });
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/update-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        apiKey: userData.key,
+                        type: type,
+                        value: val
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.status) {
+                    if (type !== 'password') {
+                        const key = type === 'profile_img' ? 'profile_img' : type;
+                        userData[key] = val;
+                        localStorage.setItem('kazuma_user', JSON.stringify(userData));
+                    }
+
+                    Swal.fire({
+                        title: '¡Actualizado!',
+                        text: 'Datos guardados correctamente',
+                        icon: 'success',
+                        background: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                        confirmButtonColor: '#ec4899',
+                        timer: 1500,
+                        showConfirmButton: true
+                    }).then(() => {
+                        if (type !== 'password') {
+                            loadProfile();
+                        }
+                    });
+
+                    input.value = '';
+                } else {
+                    throw new Error(data.message || 'Error al actualizar');
+                }
+            } catch (err) {
+                Swal.fire({
+                    title: 'Error',
+                    text: err.message || 'Fallo al conectar con el servidor',
+                    icon: 'error',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    confirmButtonColor: '#ec4899'
+                });
+            }
+        }
+
+        function copyKey() {
+            const key = document.getElementById('view-apikey').value;
+            navigator.clipboard.writeText(key);
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '¡API Key copiada!',
+                showConfirmButton: false,
+                timer: 1500,
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            });
+        }
+
+        function logout() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: 'Tendrás que iniciar sesión nuevamente',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, cerrar',
+                cancelButtonText: 'Cancelar',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#ec4899'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                }
+            });
+        }
+
+        function comprarWhatsApp(plan, precio, beneficios) {
+            const mensaje = `Hola FamilyBot-MD, quiero información sobre el plan ${plan} de $${precio} USD. Beneficios: ${beneficios}. Mi usuario es: ${userData.username}. Mi email es: ${userData.email}. Gracias!`;
+            const url = `https://wa.me/59177474230?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, '_blank');
+        }
+
+        window.onload = loadProfile;
+    </script>
+</body>
+</html>
