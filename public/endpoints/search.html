@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Búsquedas · FamilyBot-MD</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lfw-dwsAAAAACc6y5K4sfFnplSqbskYPia1ADh5"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0a0b0e;
+            --bg-card: #14161c;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --accent: #ec4899;
+            --accent-purple: #a855f7;
+            --accent-gradient: linear-gradient(135deg, #ec4899, #a855f7);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 24px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.light-mode {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+        }
+
+        #safety-block {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+
+        #safety-block.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        header {
+            background: var(--bg-card);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), box-shadow var(--transition);
+        }
+
+        body.light-mode header {
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .brand span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            transform: rotate(20deg);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-back {
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        body.light-mode .btn-back {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .btn-back:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        /* Card principal */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid rgba(0,0,0,0.02);
+            box-shadow: var(--shadow);
+            transition: all var(--transition);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        body.light-mode .card {
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .card-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        body.light-mode .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .card-header .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .card-header .icon.pinterest { background: rgba(230, 0, 35, 0.1); color: #e60023; }
+        .card-header .icon.tiktok { background: rgba(0, 0, 0, 0.1); color: #00f2ea; }
+        .card-header .icon.youtube { background: rgba(255, 0, 0, 0.1); color: #ff0000; }
+        .card-header .icon.memes { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .card-header .icon.wikipedia { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+        .card-header .icon.anime { background: rgba(139, 92, 246, 0.1); color: #a855f7; }
+        .card-header .icon.lyrics { background: rgba(236, 72, 153, 0.1); color: #ec4899; }
+        .card-header .icon.github { background: rgba(255, 255, 255, 0.08); color: #f1f5f9; }
+
+        body.light-mode .card-header .icon.tiktok { background: rgba(0, 0, 0, 0.05); }
+
+        .card-header h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .card-header .badge {
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: var(--bg-primary);
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .card-body {
+            padding: 20px 24px;
+        }
+
+        .code-box {
+            background: var(--bg-primary);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', 'Menlo', monospace;
+            font-size: 0.65rem;
+            color: var(--accent);
+            border: 1px solid rgba(0,0,0,0.04);
+            word-break: break-all;
+            margin-bottom: 14px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        body.light-mode .code-box {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .input-test {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1.5px solid transparent;
+            padding: 12px 16px;
+            border-radius: 14px;
+            color: var(--text-primary);
+            outline: none;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .input-test::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-test:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+        }
+
+        .btn-test {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-test:active {
+            transform: translateY(0);
+        }
+
+        .result-box {
+            background: var(--bg-primary);
+            color: #22d3ee;
+            padding: 16px;
+            border-radius: 14px;
+            margin-top: 14px;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', 'Menlo', monospace;
+            border: 1px solid rgba(0,0,0,0.04);
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 350px;
+            overflow-y: auto;
+            display: none;
+            line-height: 1.6;
+        }
+
+        body.light-mode .result-box {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .result-box::-webkit-scrollbar { width: 4px; }
+        .result-box::-webkit-scrollbar-track { background: transparent; }
+        .result-box::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .btn-copy-json {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            width: 100%;
+            padding: 10px;
+            border-radius: 0 0 var(--radius) var(--radius);
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: none;
+            border: none;
+            border-top: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        body.light-mode .btn-copy-json {
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .btn-copy-json:hover {
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.04);
+        }
+
+        .cantidad-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .cantidad-selector button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1.5px solid transparent;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .cantidad-selector button:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .cantidad-selector button.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .page-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            padding: 0 4px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: var(--accent);
+        }
+
+        .grecaptcha-badge { z-index: 9999 !important; }
+
+        @media (max-width: 480px) {
+            .card-header { padding: 16px 18px; }
+            .card-body { padding: 16px 18px; }
+            .code-box { font-size: 0.55rem; padding: 8px 12px; }
+            .page-title { font-size: 1.1rem; }
+            .result-box { font-size: 0.55rem; max-height: 250px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="safety-block"></div>
+
+    <header>
+        <div class="brand" onclick="location.href='/dash'">
+            <i class="fas fa-crown"></i>
+            <span>FamilyBot-MD</span>
+        </div>
+        <div class="header-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn-back" onclick="location.href='/dash'">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 max-w-2xl pb-12">
+        <div class="page-title">
+            <i class="fas fa-search"></i> Búsquedas
+        </div>
+
+        <!-- Pinterest -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon pinterest"><i class="fab fa-pinterest"></i></div>
+                <h3>Pinterest Search</h3>
+                <span class="badge">GET</span>
+            </div>
+            <div class="card-body">
+                <div class="code-box" id="pin-path">GET /api/search/pinterest?apiKey=</div>
+                <input id="in-pin" class="input-test" placeholder="Buscar imágenes...">
+                <button class="btn-test" onclick="testSearch('pin', '/api/search/pinterest')">
+                    <i class="fas fa-search mr-2"></i> Buscar en Pinterest
+                </button>
+                <div id="res-pin" class="result-box"></div>
+            </div>
+            <button id="copy-pin" class="btn-copy-json" onclick="copyResult('pin')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- TikTok -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon tiktok"><i class="fab fa-tiktok"></i></div>
+                <h3>TikTok Search</h3>
+                <span class="badge">GET</span>
+            </div>
+            <div class="card-body">
+                <div class="code-box" id="tt-path">GET /api/search/tiktok?apiKey=</div>
+                <input id="in-tt" class="input-test" placeholder="Buscar videos...">
+                <button class="btn-test" onclick="testSearch('tt', '/api/search/tiktok')">
+                    <i class="fas fa-search mr-2"></i> Buscar en TikTok
+                </button>
+                <div id="res-tt" class="result-box"></div>
+            </div>
+            <button id="copy-tt" class="btn-copy-json" onclick="copyResult('tt')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- YouTube -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon youtube"><i class="fab fa-youtube"></i></div>
+                <h3>YouTube Search</h3>
+                <span class="badge">GET</span>
+            </div>
+            <div class="card-body">
+                <div class="code-box" id="yt-path">GET /api/search/youtube?apiKey=</div>
+                <input id="in-yt" class="input-test" placeholder="Buscar videos en YouTube...">
+                <button class="btn-test" onclick="testSearch('yt', '/api/search/youtube')">
+                    <i class="fas fa-search mr-2"></i> Buscar en YouTube
+                </button>
+                <div id="res-yt" class="result-box"></div>
+            </div>
+            <button id="copy-yt" class="btn-copy-json" onclick="copyResult('yt')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Memes -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon memes"><i class="fas fa-face-laugh-squint"></i></div>
+                <h3>Memes Aleatorios (Reddit)</h3>
+                <span class="badge">GET</span>
+            </div>
+            <div class="card-body">
+                <div class="code-box" id="memes-path">GET /api/search/memes?apiKey=</div>
+                <p style="font-size:0.7rem; color:var(--text-secondary); margin-bottom:12px;">
+                    <i class="fas fa-info-circle mr-1"></i> Memes en español de Reddit. Elige la cantidad:
+                </p>
+                <div class="cantidad-selector" id="cantidad-selector">
+                    <button onclick="setCantidad(1)" class="active" id="btn-c1">1</button>
+                    <button onclick="setCantidad(3)" id="btn-c3">3</button>
+                    <button onclick="setCantidad(5)" id="btn-c5">5</button>
+                    <button onclick="setCantidad(10)" id="btn-c10">10</button>
+                </div>
+                <button class="btn-test" onclick="testMemes()">
+                    <i class="fas fa-dice mr-2"></i> Obtener Memes
+                </button>
+                <div id="res-memes" class="result-box"></div>
+            </div>
+            <button id="copy-memes" class="btn-copy-json" onclick="copyResult('memes')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Wikipedia -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon wikipedia"><i class="fab fa-wikipedia-w"></i></div>
+                <h3>Wikipedia</h3>
+                <span class="badge">GET</span>
+            </div>
+            <div class="card-body">
+                <div class="code-box" id="wiki-path">GET /api/search/wikipedia?apiKey=</div>
+                <input id="in-wiki" class="input-test" placeholder="Buscar en Wikipedia...">
+                <button class="btn-test" onclick="testSearch('wiki', '/api/search/wikipedia')">
+                    <i class="fas fa-search mr-2"></i> Buscar en Wikipedia
+                </button>
+                <div id="res-wiki" class="result-box"></div>
+            </div>
+            <button id="copy-wiki" class="btn-copy-json" onclick="copyResult('wiki')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Anime (MyAnimeList) -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon anime"><i class="fas fa-torii-gate"></i></div>
+                <h3>Anime (MyAnimeList)</h3>
+                <span class="badge">GET</span>
+            </div>
+            <div class="card-body">
+                <div class="code-box" id="anime-path">GET /api/search/anime?apiKey=</div>
+                <input id="in-anime" class="input-test" placeholder="Buscar un anime...">
+                <button class="btn-test" onclick="testSearch('anime', '/api/search/anime')">
+                    <i class="fas fa-search mr-2"></i> Buscar Anime
+                </button>
+                <div id="res-anime" class="result-box"></div>
+            </div>
+            <button id="copy-anime" class="btn-copy-json" onclick="copyResult('anime')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Letras de canciones -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon lyrics"><i class="fas fa-music"></i></div>
+                <h3>Letras de Canciones</h3>
+                <span class="badge">GET</span>
+            </div>
+            <div class="card-body">
+                <div class="code-box" id="lyrics-path">GET /api/search/lyrics?apiKey=</div>
+                <input id="in-lyrics-artist" class="input-test" placeholder="Artista (ej: Coldplay)" style="margin-bottom:10px;">
+                <input id="in-lyrics-title" class="input-test" placeholder="Título (ej: Yellow)">
+                <button class="btn-test" onclick="testLyrics()">
+                    <i class="fas fa-search mr-2"></i> Buscar Letra
+                </button>
+                <div id="res-lyrics" class="result-box"></div>
+            </div>
+            <button id="copy-lyrics" class="btn-copy-json" onclick="copyResult('lyrics')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- GitHub -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon github"><i class="fab fa-github"></i></div>
+                <h3>Repositorios de GitHub</h3>
+                <span class="badge">GET</span>
+            </div>
+            <div class="card-body">
+                <div class="code-box" id="gh-path">GET /api/search/github?apiKey=</div>
+                <input id="in-gh" class="input-test" placeholder="Buscar repositorios...">
+                <button class="btn-test" onclick="testSearch('gh', '/api/search/github')">
+                    <i class="fas fa-search mr-2"></i> Buscar en GitHub
+                </button>
+                <div id="res-gh" class="result-box"></div>
+            </div>
+            <button id="copy-gh" class="btn-copy-json" onclick="copyResult('gh')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        const userData = JSON.parse(localStorage.getItem('kazuma_user'));
+        if (!userData) {
+            window.location.href = '/login';
+        } else {
+            document.addEventListener("DOMContentLoaded", () => {
+                // Cargar tema
+                const savedTheme = localStorage.getItem('kazuma-theme');
+                if (savedTheme === 'light') {
+                    document.body.classList.add('light-mode');
+                    document.getElementById('theme-btn').querySelector('i').classList.replace('fa-moon', 'fa-sun');
+                }
+
+                // Actualizar paths con API key
+                ['pin', 'tt', 'yt', 'wiki', 'anime', 'gh'].forEach(id => {
+                    const el = document.getElementById(`${id}-path`);
+                    if (el) el.innerText += `${userData.key}&query=...`;
+                });
+                const memesEl = document.getElementById('memes-path');
+                if (memesEl) memesEl.innerText += `${userData.key}&cantidad=1`;
+                const lyricsEl = document.getElementById('lyrics-path');
+                if (lyricsEl) lyricsEl.innerText += `${userData.key}&artist=...&title=...`;
+
+                // Ocultar safety block
+                setTimeout(() => {
+                    document.getElementById('safety-block').classList.add('hidden');
+                }, 400);
+            });
+        }
+
+        let cantidadMemes = 1;
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            const icon = btn.querySelector('i');
+
+            body.classList.toggle('light-mode');
+
+            if (body.classList.contains('light-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('kazuma-theme', 'light');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('kazuma-theme', 'dark');
+            }
+        }
+
+        function setCantidad(n) {
+            cantidadMemes = n;
+            [1, 3, 5, 10].forEach(v => {
+                const btn = document.getElementById(`btn-c${v}`);
+                if (btn) btn.classList.toggle('active', v === n);
+            });
+        }
+
+        async function testMemes() {
+            const resBox = document.getElementById('res-memes');
+            const copyBtn = document.getElementById('copy-memes');
+
+            resBox.style.display = 'block';
+            resBox.innerText = "⏳ Obteniendo memes...";
+            copyBtn.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/search/memes?cantidad=${cantidadMemes}&apiKey=${userData.key}`);
+                const data = await response.json();
+                resBox.innerText = JSON.stringify(data, null, 2);
+                copyBtn.style.display = 'block';
+            } catch (e) {
+                resBox.innerText = "❌ Error en el servidor";
+            }
+        }
+
+        async function testLyrics() {
+            const artist = document.getElementById('in-lyrics-artist').value.trim();
+            const title = document.getElementById('in-lyrics-title').value.trim();
+            const resBox = document.getElementById('res-lyrics');
+            const copyBtn = document.getElementById('copy-lyrics');
+
+            if (!artist || !title) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Faltan datos',
+                    text: 'Escribe el artista y el título de la canción',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    confirmButtonColor: '#ec4899'
+                });
+                return;
+            }
+
+            resBox.style.display = 'block';
+            resBox.innerText = "⏳ Buscando letra...";
+            copyBtn.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/search/lyrics?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}&apiKey=${userData.key}`);
+                const data = await response.json();
+                resBox.innerText = JSON.stringify(data, null, 2);
+                copyBtn.style.display = 'block';
+            } catch (e) {
+                resBox.innerText = "❌ Error en el servidor";
+            }
+        }
+
+        async function testSearch(id, route) {
+            const query = document.getElementById(`in-${id}`).value.trim();
+            const resBox = document.getElementById(`res-${id}`);
+            const copyBtn = document.getElementById(`copy-${id}`);
+
+            if (!query) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Escribe algo',
+                    text: 'Ingresa un término de búsqueda',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    confirmButtonColor: '#ec4899'
+                });
+                return;
+            }
+
+            resBox.style.display = 'block';
+            resBox.innerText = "⏳ Buscando...";
+            copyBtn.style.display = 'none';
+
+            try {
+                const response = await fetch(`${route}?query=${encodeURIComponent(query)}&apiKey=${userData.key}`);
+                const data = await response.json();
+                resBox.innerText = JSON.stringify(data, null, 2);
+                copyBtn.style.display = 'block';
+            } catch (e) {
+                resBox.innerText = "❌ Error en el servidor";
+            }
+        }
+
+        function copyResult(id) {
+            const text = document.getElementById(`res-${id}`).innerText;
+            if (!text || text.includes('⏳') || text === "❌ Error en el servidor") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin datos',
+                    text: 'Ejecuta una búsqueda primero',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    confirmButtonColor: '#ec4899'
+                });
+                return;
+            }
+            navigator.clipboard.writeText(text);
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '¡Copiado!',
+                showConfirmButton: false,
+                timer: 1500,
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            });
+        }
+
+        window.onload = () => {
+            grecaptcha.ready(() => {
+                grecaptcha.execute('6Lfw-dwsAAAAACc6y5K4sfFnplSqbskYPia1ADh5', { action: 'search_test' });
+            });
+        };
+    </script>
+</body>
+</html>

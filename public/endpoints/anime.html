@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Anime · FamilyBot-MD</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lfw-dwsAAAAACc6y5K4sfFnplSqbskYPia1ADh5"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0a0b0e;
+            --bg-card: #14161c;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --accent: #ec4899;
+            --accent-purple: #a855f7;
+            --accent-gradient: linear-gradient(135deg, #ec4899, #a855f7);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 24px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.light-mode {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+        }
+
+        #safety-block {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+
+        #safety-block.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        header {
+            background: var(--bg-card);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), box-shadow var(--transition);
+        }
+
+        body.light-mode header {
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .brand span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            transform: rotate(20deg);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-back {
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        body.light-mode .btn-back {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .btn-back:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid rgba(0,0,0,0.02);
+            box-shadow: var(--shadow);
+            transition: all var(--transition);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        body.light-mode .card {
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .card-header {
+            padding: 18px 24px 14px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        body.light-mode .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .card-header .icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .card-header .icon.kiss { background: rgba(236, 72, 153, 0.1); color: #ec4899; }
+        .card-header .icon.sad { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
+        .card-header .icon.solo { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .card-header .icon.hug { background: rgba(52, 211, 153, 0.1); color: #34d399; }
+        .card-header .icon.pat { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+        .card-header .icon.slap { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        .card-header h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .card-header .badge {
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            background: var(--bg-primary);
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .card-body {
+            padding: 18px 24px 20px;
+        }
+
+        .card-body .desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-body .desc i {
+            color: var(--accent);
+            font-size: 0.7rem;
+        }
+
+        .code-box {
+            background: var(--bg-primary);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', 'Menlo', monospace;
+            font-size: 0.65rem;
+            color: var(--accent);
+            border: 1px solid rgba(0,0,0,0.04);
+            word-break: break-all;
+            margin-bottom: 14px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        body.light-mode .code-box {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .tag-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 12px;
+            border-radius: 20px;
+            background: rgba(59, 130, 246, 0.06);
+            color: var(--text-muted);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        body.light-mode .tag {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .tag.pink { background: rgba(236, 72, 153, 0.06); color: #ec4899; border-color: rgba(236, 72, 153, 0.1); }
+        .tag.blue { background: rgba(59, 130, 246, 0.06); color: var(--accent); border-color: rgba(59, 130, 246, 0.1); }
+        .tag.orange { background: rgba(245, 158, 11, 0.06); color: #f59e0b; border-color: rgba(245, 158, 11, 0.1); }
+        .tag.red { background: rgba(239, 68, 68, 0.06); color: #ef4444; border-color: rgba(239, 68, 68, 0.1); }
+
+        .btn-test {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-test:active {
+            transform: translateY(0);
+        }
+
+        .btn-test.kiss-btn { background: linear-gradient(135deg, #ec4899, #f472b6); }
+        .btn-test.sad-btn { background: linear-gradient(135deg, #ec4899, #6366f1); }
+        .btn-test.solo-btn { background: linear-gradient(135deg, #f59e0b, #f97316); }
+
+        .result-box {
+            background: var(--bg-primary);
+            color: #22d3ee;
+            padding: 16px;
+            border-radius: 14px;
+            margin-top: 14px;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', 'Menlo', monospace;
+            border: 1px solid rgba(0,0,0,0.04);
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            line-height: 1.6;
+        }
+
+        body.light-mode .result-box {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .result-box::-webkit-scrollbar { width: 4px; }
+        .result-box::-webkit-scrollbar-track { background: transparent; }
+        .result-box::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .btn-copy-json {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            width: 100%;
+            padding: 10px;
+            border-radius: 0 0 var(--radius) var(--radius);
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: none;
+            border: none;
+            border-top: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        body.light-mode .btn-copy-json {
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .btn-copy-json:hover {
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.04);
+        }
+
+        .page-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            padding: 0 4px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: var(--accent);
+        }
+
+        .grecaptcha-badge { z-index: 9999 !important; }
+
+        @media (max-width: 480px) {
+            .card-header { padding: 14px 16px; }
+            .card-body { padding: 14px 16px; }
+            .code-box { font-size: 0.55rem; padding: 8px 12px; }
+            .page-title { font-size: 1.1rem; }
+            .result-box { font-size: 0.55rem; max-height: 200px; }
+            .tag { font-size: 0.5rem; padding: 2px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="safety-block"></div>
+
+    <header>
+        <div class="brand" onclick="location.href='/dash'">
+            <i class="fas fa-crown"></i>
+            <span>FamilyBot-MD</span>
+        </div>
+        <div class="header-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn-back" onclick="location.href='/dash'">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 max-w-2xl pb-12">
+        <div class="page-title">
+            <i class="fas fa-torii-gate"></i> Anime
+        </div>
+
+        <!-- Kiss -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon kiss"><i class="fas fa-heart"></i></div>
+                <h3>Anime Kiss</h3>
+                <span class="badge">Random</span>
+            </div>
+            <div class="card-body">
+                <div class="tag-group">
+                    <span class="tag pink"><i class="fas fa-video mr-1"></i> Video</span>
+                    <span class="tag pink"><i class="fas fa-random mr-1"></i> Aleatorio</span>
+                </div>
+                <p class="desc"><i class="fas fa-info-circle"></i> Devuelve un video aleatorio de beso anime.</p>
+                <div class="code-box" id="kiss-path">GET /api/anime/kiss?apiKey=</div>
+                <button class="btn-test kiss-btn" onclick="testAnime('kiss', '/api/anime/kiss')">
+                    <i class="fas fa-dice mr-2"></i> Obtener Kiss
+                </button>
+                <div id="res-kiss" class="result-box"></div>
+            </div>
+            <button id="copy-kiss" class="btn-copy-json" onclick="copyResult('kiss')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Sad -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon sad"><i class="fas fa-face-sad-tear"></i></div>
+                <h3>Anime Sad</h3>
+                <span class="badge">Random</span>
+            </div>
+            <div class="card-body">
+                <div class="tag-group">
+                    <span class="tag blue"><i class="fas fa-video mr-1"></i> Video</span>
+                    <span class="tag blue"><i class="fas fa-random mr-1"></i> Aleatorio</span>
+                </div>
+                <p class="desc"><i class="fas fa-info-circle"></i> Devuelve un video aleatorio de anime triste.</p>
+                <div class="code-box" id="sad-path">GET /api/anime/sad?apiKey=</div>
+                <button class="btn-test sad-btn" onclick="testAnime('sad', '/api/anime/sad')">
+                    <i class="fas fa-dice mr-2"></i> Obtener Sad
+                </button>
+                <div id="res-sad" class="result-box"></div>
+            </div>
+            <button id="copy-sad" class="btn-copy-json" onclick="copyResult('sad')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Solo -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon solo"><i class="fas fa-fire"></i></div>
+                <h3>Anime Solo</h3>
+                <span class="badge">18+</span>
+            </div>
+            <div class="card-body">
+                <div class="tag-group">
+                    <span class="tag orange"><i class="fas fa-video mr-1"></i> Video</span>
+                    <span class="tag orange"><i class="fas fa-random mr-1"></i> Aleatorio</span>
+                    <span class="tag red"><i class="fas fa-exclamation-triangle mr-1"></i> 18+</span>
+                </div>
+                <p class="desc"><i class="fas fa-info-circle"></i> Devuelve un video aleatorio. Solo para mayores de 18.</p>
+                <div class="code-box" id="solo-path">GET /api/anime/solo?apiKey=</div>
+                <button class="btn-test solo-btn" onclick="testAnime('solo', '/api/anime/solo')">
+                    <i class="fas fa-dice mr-2"></i> Obtener Solo
+                </button>
+                <div id="res-solo" class="result-box"></div>
+            </div>
+            <button id="copy-solo" class="btn-copy-json" onclick="copyResult('solo')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Hug -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon hug"><i class="fas fa-people-arrows"></i></div>
+                <h3>Anime Hug</h3>
+                <span class="badge">Random</span>
+            </div>
+            <div class="card-body">
+                <div class="tag-group">
+                    <span class="tag pink"><i class="fas fa-image mr-1"></i> GIF</span>
+                    <span class="tag pink"><i class="fas fa-random mr-1"></i> Aleatorio</span>
+                </div>
+                <p class="desc"><i class="fas fa-info-circle"></i> Devuelve un GIF aleatorio de abrazo anime (nekos.best).</p>
+                <div class="code-box" id="hug-path">GET /api/anime/hug?apiKey=</div>
+                <button class="btn-test hug-btn" onclick="testAnime('hug', '/api/anime/hug')">
+                    <i class="fas fa-dice mr-2"></i> Obtener Hug
+                </button>
+                <div id="res-hug" class="result-box"></div>
+            </div>
+            <button id="copy-hug" class="btn-copy-json" onclick="copyResult('hug')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Pat -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon pat"><i class="fas fa-hand-sparkles"></i></div>
+                <h3>Anime Pat</h3>
+                <span class="badge">Random</span>
+            </div>
+            <div class="card-body">
+                <div class="tag-group">
+                    <span class="tag pink"><i class="fas fa-image mr-1"></i> GIF</span>
+                    <span class="tag pink"><i class="fas fa-random mr-1"></i> Aleatorio</span>
+                </div>
+                <p class="desc"><i class="fas fa-info-circle"></i> Devuelve un GIF aleatorio de cariñito en la cabeza (nekos.best).</p>
+                <div class="code-box" id="pat-path">GET /api/anime/pat?apiKey=</div>
+                <button class="btn-test pat-btn" onclick="testAnime('pat', '/api/anime/pat')">
+                    <i class="fas fa-dice mr-2"></i> Obtener Pat
+                </button>
+                <div id="res-pat" class="result-box"></div>
+            </div>
+            <button id="copy-pat" class="btn-copy-json" onclick="copyResult('pat')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+        <!-- Slap -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon slap"><i class="fas fa-hand"></i></div>
+                <h3>Anime Slap</h3>
+                <span class="badge">Random</span>
+            </div>
+            <div class="card-body">
+                <div class="tag-group">
+                    <span class="tag pink"><i class="fas fa-image mr-1"></i> GIF</span>
+                    <span class="tag pink"><i class="fas fa-random mr-1"></i> Aleatorio</span>
+                </div>
+                <p class="desc"><i class="fas fa-info-circle"></i> Devuelve un GIF aleatorio de cachetada anime (nekos.best).</p>
+                <div class="code-box" id="slap-path">GET /api/anime/slap?apiKey=</div>
+                <button class="btn-test slap-btn" onclick="testAnime('slap', '/api/anime/slap')">
+                    <i class="fas fa-dice mr-2"></i> Obtener Slap
+                </button>
+                <div id="res-slap" class="result-box"></div>
+            </div>
+            <button id="copy-slap" class="btn-copy-json" onclick="copyResult('slap')">
+                <i class="fas fa-copy mr-2"></i> Copiar JSON
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        const userData = JSON.parse(localStorage.getItem('kazuma_user'));
+
+        if (!userData) {
+            window.location.href = '/login';
+        } else {
+            document.addEventListener("DOMContentLoaded", () => {
+                // Cargar tema
+                const savedTheme = localStorage.getItem('kazuma-theme');
+                if (savedTheme === 'light') {
+                    document.body.classList.add('light-mode');
+                    document.getElementById('theme-btn').querySelector('i').classList.replace('fa-moon', 'fa-sun');
+                }
+
+                // Actualizar paths con API key
+                ['kiss', 'sad', 'solo', 'hug', 'pat', 'slap'].forEach(id => {
+                    const el = document.getElementById(`${id}-path`);
+                    if (el) el.innerText += userData.key;
+                });
+
+                // Ocultar safety block
+                setTimeout(() => {
+                    document.getElementById('safety-block').classList.add('hidden');
+                }, 400);
+            });
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            const icon = btn.querySelector('i');
+
+            body.classList.toggle('light-mode');
+
+            if (body.classList.contains('light-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('kazuma-theme', 'light');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('kazuma-theme', 'dark');
+            }
+        }
+
+        async function testAnime(id, route) {
+            const resBox = document.getElementById(`res-${id}`);
+            const copyBtn = document.getElementById(`copy-${id}`);
+
+            resBox.style.display = 'block';
+            resBox.innerText = "⏳ Obteniendo video...";
+            copyBtn.style.display = 'none';
+
+            try {
+                const response = await fetch(`${route}?apiKey=${userData.key}`);
+                const data = await response.json();
+                resBox.innerText = JSON.stringify(data, null, 2);
+                copyBtn.style.display = 'block';
+            } catch (e) {
+                resBox.innerText = "❌ Error en el servidor";
+                copyBtn.style.display = 'block';
+            }
+        }
+
+        function copyResult(id) {
+            const text = document.getElementById(`res-${id}`).innerText;
+            if (!text || text.includes("⏳") || text.includes("❌")) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin datos',
+                    text: 'Obtén un video primero',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    confirmButtonColor: '#ec4899'
+                });
+                return;
+            }
+            navigator.clipboard.writeText(text);
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '¡Copiado!',
+                showConfirmButton: false,
+                timer: 1500,
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            });
+        }
+
+        window.onload = () => {
+            grecaptcha.ready(() => {
+                grecaptcha.execute('6Lfw-dwsAAAAACc6y5K4sfFnplSqbskYPia1ADh5', { action: 'anime_test' });
+            });
+        };
+    </script>
+</body>
+</html>
