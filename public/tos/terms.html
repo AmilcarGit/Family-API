@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TOS · FamilyBot-MD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0a0b0e;
+            --bg-card: #14161c;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --accent: #ec4899;
+            --accent-purple: #a855f7;
+            --accent-gradient: linear-gradient(135deg, #ec4899, #a855f7);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 24px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.light-mode {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--bg-card);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), box-shadow var(--transition);
+        }
+
+        body.light-mode header {
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            transform: rotate(20deg);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-back {
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        body.light-mode .btn-back {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .btn-back:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 50px 20px 30px;
+            position: relative;
+            overflow: hidden;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero h1 span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* Contenido */
+        .content {
+            padding: 10px 20px 60px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .tos-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0,0,0,0.02);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        body.light-mode .tos-card {
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .tos-card:hover {
+            transform: translateX(4px);
+        }
+
+        .tos-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: 3px 0 0 3px;
+        }
+
+        .tos-number {
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
+
+        .tos-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .tos-body {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .tos-body strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        /* Card de aviso final */
+        .accept-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.04), rgba(139, 92, 246, 0.04));
+            border: 1px solid rgba(59, 130, 246, 0.08);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .accept-card i {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .accept-card p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .accept-card strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            border-top: 1px solid rgba(0,0,0,0.04);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        body.light-mode footer {
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+
+        footer p {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        footer p span {
+            color: var(--accent);
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.6rem; }
+            .tos-card { padding: 18px; }
+            .tos-title { font-size: 0.85rem; }
+            .tos-body { font-size: 0.78rem; }
+            .accept-card { padding: 20px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <i class="fas fa-crown"></i>
+            <span>FamilyBot-MD</span>
+        </div>
+        <div class="header-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn-back" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+        </div>
+    </header>
+
+    <div class="hero">
+        <div class="hero-tag"><i class="fas fa-shield-halved"></i> Términos de Servicio</div>
+        <h1>Lee antes <span>de usar</span></h1>
+        <p class="hero-date">Última actualización: Junio 2026</p>
+    </div>
+
+    <div class="content">
+
+        <div class="tos-card">
+            <div class="tos-number">Artículo 01</div>
+            <div class="tos-title">Uso del Servicio Gratuito</div>
+            <p class="tos-body">FamilyBot-MD API es un servicio proporcionado de forma gratuita por <strong>FamilyBot-MD</strong>. El acceso a los endpoints está sujeto a límites razonables para garantizar la estabilidad del servidor para todos los desarrolladores.</p>
+        </div>
+
+        <div class="tos-card">
+            <div class="tos-number">Artículo 02</div>
+            <div class="tos-title">Política Anti-Abuso</div>
+            <p class="tos-body">Queda estrictamente prohibido cualquier intento de <strong>Spamming</strong> o inundación de peticiones (Flooding) hacia nuestros servidores. El uso de scripts para saturar los endpoints resultará en la <strong>revocación inmediata de la API Key</strong> y el bloqueo permanente de la IP.</p>
+        </div>
+
+        <div class="tos-card">
+            <div class="tos-number">Artículo 03</div>
+            <div class="tos-title">Restricción de Multicuentas</div>
+            <p class="tos-body">Cada desarrollador tiene permitido poseer <strong>una sola cuenta</strong> por dispositivo/identidad. La creación de multicuentas para evadir los límites diarios es detectada por nuestro sistema de seguridad y conlleva al <strong>baneo de todas las cuentas asociadas</strong> sin previo aviso.</p>
+        </div>
+
+        <div class="tos-card">
+            <div class="tos-number">Artículo 04</div>
+            <div class="tos-title">Responsabilidad del Contenido</div>
+            <p class="tos-body">FamilyBot-MD API actúa únicamente como una herramienta de procesamiento. No almacenamos los archivos descargados ni nos hacemos responsables por el uso que los usuarios den a los datos obtenidos a través de los scrapers de redes sociales o IA.</p>
+        </div>
+
+        <div class="tos-card">
+            <div class="tos-number">Artículo 05</div>
+            <div class="tos-title">Estabilidad y Cambios</div>
+            <p class="tos-body">Al ser un proyecto gratuito, no garantizamos un uptime del 100%. Nos reservamos el derecho de <strong>modificar, suspender o eliminar endpoints</strong> según la disponibilidad de las fuentes y la seguridad de la infraestructura.</p>
+        </div>
+
+        <div class="tos-card">
+            <div class="tos-number">Artículo 06</div>
+            <div class="tos-title">Soporte y Contacto</div>
+            <p class="tos-body">Para reportar fallos o solicitar asistencia técnica, los usuarios deben dirigirse únicamente a los <strong>canales oficiales</strong> (WhatsApp o Correo) proporcionados en el Dashboard principal.</p>
+        </div>
+
+        <div class="accept-card">
+            <i class="fas fa-circle-check"></i>
+            <p>Al <strong>registrarte en FamilyBot-MD API</strong>, aceptas estos términos de forma automática. Si no estás de acuerdo con alguno de ellos, te pedimos que no uses el servicio.</p>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 <span>FamilyBot-MD</span> · Todos los derechos reservados</p>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            const icon = btn.querySelector('i');
+
+            body.classList.toggle('light-mode');
+
+            if (body.classList.contains('light-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('kazuma-theme', 'light');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('kazuma-theme', 'dark');
+            }
+        }
+
+        // Cargar tema guardado
+        (function initTheme() {
+            const saved = localStorage.getItem('kazuma-theme');
+            if (saved === 'light') {
+                document.body.classList.add('light-mode');
+                document.getElementById('theme-btn').querySelector('i').classList.replace('fa-moon', 'fa-sun');
+            }
+        })();
+    </script>
+</body>
+</html>
