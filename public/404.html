@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>404 · FamilyBot-MD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0a0b0e;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --accent: #ec4899;
+            --accent-gradient: linear-gradient(135deg, #ec4899, #a855f7);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.light-mode {
+            --bg-primary: #f0f2f5;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0.08; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .error-container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        .brand-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 24px;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            margin: 0 auto 24px;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+            transition: var(--transition);
+        }
+
+        .brand-icon:hover {
+            transform: scale(1.05) rotate(-5deg);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -4px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            text-shadow: none;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .error-title span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .error-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 420px;
+            margin: 0 auto 32px;
+        }
+
+        .error-description strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 14px 32px;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            padding: 14px 32px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1.5px solid rgba(0,0,0,0.04);
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        body.light-mode .btn-secondary {
+            border-color: rgba(0,0,0,0.04);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+            transform: translateY(-3px);
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            z-index: 1;
+        }
+
+        .footer span {
+            color: var(--accent);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            z-index: 1000;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        body.light-mode .theme-toggle {
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(20deg) scale(1.05);
+            color: var(--accent);
+        }
+
+        @media (max-width: 480px) {
+            .error-code {
+                font-size: 5rem;
+                letter-spacing: -2px;
+            }
+            .error-title {
+                font-size: 1.2rem;
+            }
+            .btn-primary, .btn-secondary {
+                padding: 12px 24px;
+                font-size: 0.8rem;
+                width: 100%;
+                justify-content: center;
+            }
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            .brand-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 1.5rem;
+                border-radius: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-particles" id="particles"></div>
+
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="error-container">
+        <div class="brand-icon">
+            <i class="fas fa-crown"></i>
+        </div>
+
+        <div class="error-code">404</div>
+
+        <h1 class="error-title">
+            <span>Protocolo Interrumpido</span>
+        </h1>
+
+        <p class="error-description">
+            El endpoint o la página que buscas no existe en el sistema <strong>FamilyBot-MD</strong>.
+            <br>Verifica la URL o regresa al inicio.
+        </p>
+
+        <div class="btn-group">
+            <a href="/" class="btn-primary">
+                <i class="fas fa-home"></i> Ir al Inicio
+            </a>
+            <button onclick="window.history.back()" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver atrás
+            </button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        © 2026 <span>FamilyBot-MD</span>
+    </footer>
+
+    <script>
+        (function createParticles() {
+            const container = document.getElementById('particles');
+            const count = 50;
+
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 6 + 2;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 20 + 15) + 's';
+                particle.style.animationDelay = (Math.random() * 15) + 's';
+                particle.style.opacity = (Math.random() * 0.08 + 0.02);
+                container.appendChild(particle);
+            }
+        })();
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            const icon = btn.querySelector('i');
+
+            body.classList.toggle('light-mode');
+
+            if (body.classList.contains('light-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('kazuma-theme', 'light');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('kazuma-theme', 'dark');
+            }
+        }
+
+        (function initTheme() {
+            const saved = localStorage.getItem('kazuma-theme');
+            if (saved === 'light') {
+                document.body.classList.add('light-mode');
+                document.getElementById('theme-btn').querySelector('i').classList.replace('fa-moon', 'fa-sun');
+            }
+        })();
+    </script>
+</body>
+</html>
